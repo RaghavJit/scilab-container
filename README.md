@@ -1,58 +1,43 @@
-# Scilab on Cloud – Containerized Deployment on Minikube
+# Scilab on Cloud – Containerized on Minikube
 
-This repository documents the steps I followed to containerize and run the [Scilab on Cloud](https://github.com/prashantsinalkar/scilab-on-cloud) project using Minikube and Podman.
+## Repo
 
----
+Forked from: [prashantsinalkar/scilab-on-cloud](https://github.com/prashantsinalkar/scilab-on-cloud)  
+My changes: [Compare here](https://github.com/prashantsinalkar/scilab-on-cloud/compare/maxprocess...RaghavJit:scilab-on-cloud:maxprocess)
 
-## 🔧 Changes Made
+## Prerequisites
 
-I forked the original [scilab-on-cloud](https://github.com/prashantsinalkar/scilab-on-cloud) project and made changes to:
-
-- Ensure compatibility with Python 3.9.21
-- Make the application Docker-ready
-
-You can see the changes here:  
-👉 [Compare maxprocess...RaghavJit:maxprocess](https://github.com/prashantsinalkar/scilab-on-cloud/compare/maxprocess...RaghavJit:scilab-on-cloud:maxprocess)
+- Python 3.9.21 (used in Dockerfile)
+- Podman (or Docker)
+- Minikube
+- kubectl
 
 ---
 
-## 🐳 Dockerization
+## Build and Save Docker Image
 
-I created a `Dockerfile` using `python:3.9.21-slim` as the base image.
-
-### Build the Image
+[Dockerfile](./Dockerfile)
 
 ```bash
 podman build -t scilab-app .
-```
-
-### Export the Image as a TAR
-
-```bash
 podman save -o scilab-app.tar scilab-app
 ```
 
 ---
 
-## Minikube Setup (Using Podman)
-
-> ⚠️ Podman support is still experimental. I recommend using Docker or a VM-based driver if you face issues.
-
-### Set Minikube to Rootless Mode
+## Setup Minikube (Rootless with Podman)
+Podman is currently in experimental version I recommend using rootless docker instead or VM [Refer this](https://minikube.sigs.k8s.io/docs/drivers/podman/).
 
 ```bash
 minikube config set rootless true
-```
-
-### Start Minikube with Podman and containerd
-
-```bash
 minikube start --driver=podman --container-runtime=containerd
 ```
 
 ---
 
-## Load Docker Image into Minikube
+## Load Image into Minikube
+
+There might be better alternatives to creating a tar archive and then importing to minikube.
 
 ```bash
 minikube image load scilab-app.tar
@@ -60,9 +45,9 @@ minikube image load scilab-app.tar
 
 ---
 
-## Kubernetes Deployment
+## Deploy App
 
-Apply your deployment configuration:
+[scilab-deploy.yaml](./scilab-deploy.yaml)
 
 ```bash
 kubectl apply -f scilab-deploy.yaml
@@ -70,15 +55,15 @@ kubectl apply -f scilab-deploy.yaml
 
 ---
 
-## Access the Web Interface
+## Access the App
 
-To view the application in your browser:
+Launch dashboard:
 
 ```bash
 minikube dashboard
 ```
 
-Or get the external URL:
+Or get the app URL:
 
 ```bash
 minikube service scilab-app --url
@@ -86,29 +71,11 @@ minikube service scilab-app --url
 
 ---
 
-## 🛑 `.dockerignore`
+## .dockerignore
 
-Make sure your `.dockerignore` includes the following to keep your image clean:
+Ignore build dirs and tar:
 
 ```
 scilab-on-cloud/
 scilab-app.tar
 ```
-
----
-
-## ✅ Summary of Commands
-
-```bash
-podman build -t scilab-app .
-podman save -o scilab-app.tar scilab-app
-minikube config set rootless true
-minikube start --driver=podman --container-runtime=containerd
-minikube image load scilab-app.tar
-kubectl apply -f scilab-deploy.yaml
-minikube dashboard
-```
-
----
-
-Let me know if you want to include a sample `scilab-deploy.yaml` file or add screenshots.
